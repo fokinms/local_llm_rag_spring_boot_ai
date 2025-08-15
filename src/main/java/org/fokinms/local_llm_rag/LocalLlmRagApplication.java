@@ -14,8 +14,6 @@ public class LocalLlmRagApplication {
     }
 
     public static void main(String[] args) {
-        ChatClient chatClient = SpringApplication.run(LocalLlmRagApplication.class, args).getBean(ChatClient.class);
-        System.out.println(chatClient.prompt().user("2 + 2").call().content());
+        SpringApplication.run(LocalLlmRagApplication.class, args);
     }
-
 }
