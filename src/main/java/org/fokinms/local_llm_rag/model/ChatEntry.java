@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.proxy.HibernateProxy;
+import org.springframework.ai.chat.messages.Message;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -36,6 +37,17 @@ public class ChatEntry {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    public static ChatEntry toChatEntry(Message message) {
+        return ChatEntry.builder()
+                .role(Role.getRole(message.getMessageType().getValue()))
+                .content(message.getText())
+                .build();
+    }
+
+    public Message toMessage() {
+        return role.getMessage(content);
+    }
 
     @Override
     public final boolean equals(Object o) {
