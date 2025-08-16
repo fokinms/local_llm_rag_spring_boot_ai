@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
       file: db/changelog/changeset/local_llm_rag_V001__initial.sql
+  - include:
+      file: db/changelog/changeset/local_llm_rag_V002__vector_and_documents.sql

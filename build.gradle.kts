@@ -32,6 +32,8 @@ dependencies {
     implementation("org.liquibase:liquibase-core")
     implementation("org.springframework.ai:spring-ai-starter-model-ollama")
     implementation("org.springframework.ai:spring-ai-starter-model-chat-memory-repository-jdbc")
+    implementation("org.springframework.ai:spring-ai-starter-vector-store-pgvector")
+    implementation("org.springframework.ai:spring-ai-advisors-vector-store")
     compileOnly("org.projectlombok:lombok")
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
     runtimeOnly("org.postgresql:postgresql")
