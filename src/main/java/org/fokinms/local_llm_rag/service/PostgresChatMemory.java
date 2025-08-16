@@ -1,36 +1,38 @@
 package org.fokinms.local_llm_rag.service;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Builder;
 import org.fokinms.local_llm_rag.model.Chat;
 import org.fokinms.local_llm_rag.model.ChatEntry;
 import org.fokinms.local_llm_rag.repository.ChatRepository;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.Message;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 
-@Component
-@RequiredArgsConstructor
+@Builder
 public class PostgresChatMemory implements ChatMemory {
 
-    private final ChatRepository chatRepository;
+    private ChatRepository chatMemoryRepository;
+
+    private int maxMessages;
 
     @Override
-    @Transactional
     public void add(String conversationId, List<Message> messages) {
+        Chat chat = chatMemoryRepository.findById(Long.valueOf(conversationId)).orElseThrow();
         for (Message message : messages) {
-            Chat chat = chatRepository.findById(Long.valueOf(conversationId)).orElseThrow();
             chat.addChatEntry(ChatEntry.toChatEntry(message));
         }
+        chatMemoryRepository.save(chat);
     }
 
     @Override
     public List<Message> get(String conversationId) {
-        Chat chat = chatRepository.findById(Long.valueOf(conversationId)).orElseThrow();
+        Chat chat = chatMemoryRepository.findById(Long.valueOf(conversationId)).orElseThrow();
         return chat.getHistory().stream()
+                .sorted(Comparator.comparing(ChatEntry::getCreatedAt).reversed())
                 .map(ChatEntry::toMessage)
+                .limit(maxMessages)
                 .toList();
     }
 

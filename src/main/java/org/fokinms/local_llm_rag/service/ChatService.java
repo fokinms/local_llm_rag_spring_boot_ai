@@ -5,7 +5,7 @@ import lombok.SneakyThrows;
 import org.fokinms.local_llm_rag.model.Chat;
 import org.fokinms.local_llm_rag.repository.ChatRepository;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.data.domain.Sort;
@@ -21,8 +21,6 @@ public class ChatService {
     private final ChatRepository chatRepository;
 
     private final ChatClient chatClient;
-
-    private final PostgresChatMemory postgresChatMemory;
 
     public List<Chat> getAllChats() {
         return chatRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -46,9 +44,7 @@ public class ChatService {
         final StringBuilder answer = new StringBuilder();
         SseEmitter sseEmitter = new SseEmitter(0L);
         chatClient.prompt(userPrompt)
-                .advisors(MessageChatMemoryAdvisor.builder(postgresChatMemory)
-                        .conversationId(String.valueOf(chatId))
-                        .build())
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .stream()
                 .chatResponse()
                 .subscribe(response -> processToken(response, sseEmitter, answer),
