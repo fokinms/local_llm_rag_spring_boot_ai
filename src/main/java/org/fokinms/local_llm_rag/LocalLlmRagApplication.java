@@ -1,6 +1,7 @@
 package org.fokinms.local_llm_rag;
 
 import lombok.RequiredArgsConstructor;
+import org.fokinms.local_llm_rag.advisors.expansion.ExpansionQueryAdvisor;
 import org.fokinms.local_llm_rag.repository.ChatRepository;
 import org.fokinms.local_llm_rag.service.PostgresChatMemory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -39,10 +40,11 @@ public class LocalLlmRagApplication {
     @Bean
     public ChatClient chatClient(ChatClient.Builder builder) {
         return builder.defaultAdvisors(
-                        getHistoryAdvisor(),
-                        SimpleLoggerAdvisor.builder().build(),
-                        getRagAdvisor(),
-                        SimpleLoggerAdvisor.builder().build())
+                        ExpansionQueryAdvisor.builder().order(0).build(),
+                        getHistoryAdvisor(10),
+                        SimpleLoggerAdvisor.builder().order(20).build(),
+                        getRagAdvisor(30),
+                        SimpleLoggerAdvisor.builder().order(40).build())
                 .defaultOptions(OllamaOptions.builder()
                         .temperature(0.3)
                         .topP(0.7)
@@ -52,7 +54,7 @@ public class LocalLlmRagApplication {
                 .build();
     }
 
-    private Advisor getRagAdvisor() {
+    private Advisor getRagAdvisor(int order) {
         return QuestionAnswerAdvisor.builder(vectorStore)
                 .promptTemplate(MY_PROMPT_TEMPLATE)
                 .searchRequest(
@@ -60,11 +62,12 @@ public class LocalLlmRagApplication {
                                 .topK(4)
                                 .similarityThreshold(0.7)
                                 .build())
+                .order(order)
                 .build();
     }
 
-    private Advisor getHistoryAdvisor() {
-        return MessageChatMemoryAdvisor.builder(getChatMemory()).build();
+    private Advisor getHistoryAdvisor(int order) {
+        return MessageChatMemoryAdvisor.builder(getChatMemory()).order(order).build();
     }
 
     private ChatMemory getChatMemory() {
