@@ -39,7 +39,7 @@ public class DocumentLoaderService implements CommandLineRunner {
                  .forEach(pair -> {
                      Resource resource = pair.getFirst();
                      List<Document> documents = new TextReader(resource).get();
-                     TokenTextSplitter splitter = TokenTextSplitter.builder().withChunkSize(500).build();
+                     TokenTextSplitter splitter = TokenTextSplitter.builder().withChunkSize(200).build();
                      List<Document> chunks = splitter.apply(documents);
                      vectorStore.accept(chunks);
 

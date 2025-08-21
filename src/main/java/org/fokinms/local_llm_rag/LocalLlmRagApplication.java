@@ -10,6 +10,7 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.prompt.PromptTemplate;
+import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.SpringApplication;
@@ -37,16 +38,28 @@ public class LocalLlmRagApplication {
 
     @Bean
     public ChatClient chatClient(ChatClient.Builder builder) {
-        return builder.defaultAdvisors(getHistoryAdvisor(),
-                SimpleLoggerAdvisor.builder().build(),
-                getRagAdvisor())
+        return builder.defaultAdvisors(
+                        getHistoryAdvisor(),
+                        SimpleLoggerAdvisor.builder().build(),
+                        getRagAdvisor(),
+                        SimpleLoggerAdvisor.builder().build())
+                .defaultOptions(OllamaOptions.builder()
+                        .temperature(0.3)
+                        .topP(0.7)
+                        .topK(20)
+                        .repeatPenalty(1.1)
+                        .build())
                 .build();
     }
 
     private Advisor getRagAdvisor() {
         return QuestionAnswerAdvisor.builder(vectorStore)
-                .promptTemplate(MY_PROMPT_TEMPLATE).searchRequest(
-                        SearchRequest.builder().topK(4).build())
+                .promptTemplate(MY_PROMPT_TEMPLATE)
+                .searchRequest(
+                        SearchRequest.builder()
+                                .topK(4)
+                                .similarityThreshold(0.7)
+                                .build())
                 .build();
     }
 
