@@ -16,6 +16,32 @@ import java.util.Map;
 @Builder
 public class ExpansionQueryAdvisor implements BaseAdvisor {
 
+    private static final PromptTemplate template = PromptTemplate.builder()
+            .template("""
+                    Instruction: Расширь поисковый запрос, добавив наиболее релевантные термины.
+                    
+                    Специализация по "":
+                    -
+                    -
+                    -
+                    -
+                    
+                    Правила:
+                    1. Сохрани все слова из исходного вопроса
+                    2. Добавь максимум пять наиболее важных терминов
+                    3. Выбирай самые специфичные и релевантные слова
+                    4. Результат - простой список слов через пробел
+                    
+                    Стратегия выбора:
+                    - Приоритет: специализированные термины
+                    - Избегай общих слов
+                    - Фокусируйся на ключевых понятиях
+                    
+                    Question: {question}
+                    Expanded query:
+                    """)
+            .build();
+
     public static ExpansionQueryAdvisorBuilder builder(ChatModel chatModel) {
         return new ExpansionQueryAdvisorBuilder().chatClient(ChatClient.builder(chatModel)
                 .defaultOptions(OllamaOptions.builder()
@@ -27,20 +53,10 @@ public class ExpansionQueryAdvisor implements BaseAdvisor {
                 .build());
     }
 
-    private static final PromptTemplate template = PromptTemplate.builder()
-            .template("""
-                    Если в вопросе есть какая-либо ссылка во втором лице (например "ты", "тебе", "у тебя", "тобой" и т.д.), то отвечай от имени Олег
-                    Если ссылок не будет, верни вопрос без изменений.
-                    
-                    Question: {question}
-                    Reformulated:
-                    """)
-            .build();
-
     private ChatClient chatClient;
 
     @Getter
-    private int order;
+    private final int order;
 
     @Override
     public ChatClientRequest before(ChatClientRequest chatClientRequest, AdvisorChain advisorChain) {
@@ -51,12 +67,13 @@ public class ExpansionQueryAdvisor implements BaseAdvisor {
                 .call()
                 .content();
 
+        assert enrichedQuestion != null;
         double ratio = enrichedQuestion.length() / (double) userQuestion.length();
 
         return chatClientRequest.mutate()
                 .context("ENRICHED_QUESTION", enrichedQuestion)
                 .context("ORIGINAL_QUESTION", userQuestion)
-                .context("EXPENSION_RATIO", ratio)
+                .context("EXPANSION_RATIO", ratio)
                 .build();
     }
 

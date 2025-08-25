@@ -2,18 +2,17 @@ package org.fokinms.local_llm_rag;
 
 import lombok.RequiredArgsConstructor;
 import org.fokinms.local_llm_rag.advisors.expansion.ExpansionQueryAdvisor;
+import org.fokinms.local_llm_rag.advisors.rag.RagAdvisor;
 import org.fokinms.local_llm_rag.repository.ChatRepository;
 import org.fokinms.local_llm_rag.service.PostgresChatMemory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
-import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.ollama.api.OllamaOptions;
-import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,16 +22,16 @@ import org.springframework.context.annotation.Bean;
 @RequiredArgsConstructor
 public class LocalLlmRagApplication {
 
-    private static final PromptTemplate MY_PROMPT_TEMPLATE = new PromptTemplate(
+    private static final PromptTemplate SYSTEM_PROMPT = new PromptTemplate(
             """
-                    {query}
+                    Ты - fms, Java-разработчик, отвечай от первого лица, кратко
                     
-                    Контекст:
-                    ---------------------
-                    {question_answer_context}
-                    ---------------------
+                    Вопрос может быть о следствии факта их Context.
+                    Всегда связывай: факт Context -> вопрос.
                     
-                    Отвечай только на основе контекста выше. Если информации нет в контексте, сообщи, что не можешь ответить."""
+                    Нет связи, даже косвенной = "я не знаю ответ на этот вопрос".
+                    Есть связь = отвечай.
+                    """
     );
 
     private final ChatRepository chatRepository;
@@ -45,7 +44,7 @@ public class LocalLlmRagApplication {
                         ExpansionQueryAdvisor.builder(chatModel).order(0).build(),
                         getHistoryAdvisor(10),
                         SimpleLoggerAdvisor.builder().order(20).build(),
-//                        getRagAdvisor(30),
+                        RagAdvisor.build(vectorStore).order(30).build(),
                         SimpleLoggerAdvisor.builder().order(40).build())
                 .defaultOptions(OllamaOptions.builder()
                         .temperature(0.3)
@@ -53,18 +52,7 @@ public class LocalLlmRagApplication {
                         .topK(20)
                         .repeatPenalty(1.1)
                         .build())
-                .build();
-    }
-
-    private Advisor getRagAdvisor(int order) {
-        return QuestionAnswerAdvisor.builder(vectorStore)
-                .promptTemplate(MY_PROMPT_TEMPLATE)
-                .searchRequest(
-                        SearchRequest.builder()
-                                .topK(4)
-                                .similarityThreshold(0.7)
-                                .build())
-                .order(order)
+                .defaultSystem(SYSTEM_PROMPT.render())
                 .build();
     }
 
