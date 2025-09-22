@@ -1,12 +1,9 @@
 services:
-
   ollama:
     image: ollama/ollama
     container_name: ollama
-    ports:
-      - "11431:11434"
     volumes:
-      - ./ollama:/root/.ollama
+      - ollama-data:/root/.ollama
     entrypoint: >
       /bin/sh -c "
       ollama serve &
@@ -16,9 +13,12 @@ services:
       wait
       "
     restart: unless-stopped
+    ports:
+      - "11434:11434"
 
   postgresql:
     image: ankane/pgvector:v0.5.0
+    container_name: postgres_local_llm_rag
     restart: always
     environment:
       POSTGRES_USER: postgres
@@ -32,7 +32,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./postgresql_data:/var/lib/postgresql/data
+      - postgresql_data:/var/lib/postgresql/data
       - ./postgres/scripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: "pg_isready -U postgres -d ragdb"
@@ -42,3 +42,7 @@ services:
       retries: 10
     labels:
       amplicode.image: postgres
+
+volumes:
+  ollama-data:
+  postgresql_data:

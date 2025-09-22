@@ -1,0 +1,20 @@
+services:
+
+  java-app:
+    build:
+      context: .  # путь к директории с Dockerfile
+      dockerfile: Dockerfile
+    container_name: local_llm_rag
+    ports:
+      - "80:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://87.250.4.234:5432/ragdb
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - OLLAMA_BASE_URL=http://87.250.4.234:11434
+    restart: no
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
