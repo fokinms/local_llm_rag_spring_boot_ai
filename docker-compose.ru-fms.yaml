@@ -8,10 +8,10 @@ services:
     ports:
       - "80:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://87.250.4.234:5432/ragdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - OLLAMA_BASE_URL=http://87.250.4.234:11434
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
     restart: no
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]

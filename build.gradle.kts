@@ -41,6 +41,7 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     developmentOnly("org.springframework.ai:spring-ai-spring-boot-docker-compose")
     annotationProcessor("org.projectlombok:lombok")
+    implementation("me.paulschwarz:spring-dotenv:4.0.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

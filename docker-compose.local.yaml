@@ -21,10 +21,10 @@ services:
     container_name: postgres_local_llm_rag
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: ragdb
-      PGPASSWORD: postgres
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      POSTGRES_DB: ${SPRING_DATASOURCE_DB}
+      PGPASSWORD: ${PGPASSWORD}
     logging:
       options:
         max-size: 10m
